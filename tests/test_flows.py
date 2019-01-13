@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 TEST_PCAP_HTTP1 = '../tests/packet_captures/http1.pcap'
 
+CAP_TYPE = 'std'
+
 #======================== data.py Unit Tests ============================
 
 def test_packet():
@@ -41,7 +43,7 @@ def test_packet():
         pcap_file_handle = dpkt.pcap.Reader(pcap_file)
         for timestamp, pcap_packet in pcap_file_handle:
             #*** Instantiate an instance of Packet class:
-            packet = flows_module.Packet(logger, timestamp, pcap_packet, mode)
+            packet = flows_module.Packet(logger, timestamp, pcap_packet, mode, CAP_TYPE)
             pkt_test(packet, pkts, packet_number)
             packet_number += 1
     
@@ -54,12 +56,12 @@ def test_packet_dir():
     # For each packet in the pcap process the contents:
     mode = 'b'
     packet_number = 1
-    flows_instance = flows_module.Flows(config, mode)
+    flows_instance = flows_module.Flows(config, mode, CAP_TYPE)
     with open(TEST_PCAP_HTTP1, 'rb') as pcap_file:
         pcap_file_handle = dpkt.pcap.Reader(pcap_file)
         for timestamp, pcap_packet in pcap_file_handle:
             #*** Instantiate an instance of Packet class:
-            packet = flows_module.Packet(logger, timestamp, pcap_packet, mode)
+            packet = flows_module.Packet(logger, timestamp, pcap_packet, mode, CAP_TYPE)
             flows_instance.flow.update(packet)
             flow_dict = flows_instance.flow_cache[packet.flow_hash]
             logger.info("flow ip_src=%s", flow_dict['src_ip'])

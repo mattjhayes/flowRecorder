@@ -52,6 +52,7 @@ def test_http1_unidir():
     Test output for unidirectional processing of http1.pcap file
     """
     for python_ver in (PYTHON2, PYTHON3):
+        logger.info("Testing Python version %s", python_ver)
         # System call to remove old result file if exists:
         if os.path.isfile(RESULT_FILE): 
             logger.info("deleting RESULT_FILE=%s", RESULT_FILE)
@@ -78,6 +79,7 @@ def test_http1_bidir():
     Test output for bidirectional processing of http1.pcap file
     """
     for python_ver in (PYTHON2, PYTHON3):
+        logger.info("Testing Python version %s", python_ver)
         # System call to remove old result file if exists:
         if os.path.isfile(RESULT_FILE): 
             logger.info("deleting RESULT_FILE=%s", RESULT_FILE)
@@ -104,6 +106,7 @@ def test_PING1_unidir():
     Test output for unidirectional processing of PING1.pcap file
     """
     for python_ver in (PYTHON2, PYTHON3):
+        logger.info("Testing Python version %s", python_ver)
         # System call to remove old result file if exists:
         if os.path.isfile(RESULT_FILE): 
             logger.info("deleting RESULT_FILE=%s", RESULT_FILE)
@@ -130,6 +133,7 @@ def test_PING1_bidir():
     Test output for bidirectional processing of PING1.pcap file
     """
     for python_ver in (PYTHON2, PYTHON3):
+        logger.info("Testing Python version %s", python_ver)
         # System call to remove old result file if exists:
         if os.path.isfile(RESULT_FILE): 
             logger.info("deleting RESULT_FILE=%s", RESULT_FILE)
@@ -156,6 +160,7 @@ def test_tcp_syn_only_unidir():
     Test output for unidirectional processing of tcp_syn_only.pcap file
     """
     for python_ver in (PYTHON2, PYTHON3):
+        logger.info("Testing Python version %s", python_ver)
         # System call to remove old result file if exists:
         if os.path.isfile(RESULT_FILE): 
             logger.info("deleting RESULT_FILE=%s", RESULT_FILE)
@@ -182,6 +187,7 @@ def test_tcp_syn_only_bidir():
     Test output for bidirectional processing of tcp_syn_only.pcap file
     """
     for python_ver in (PYTHON2, PYTHON3):
+        logger.info("Testing Python version %s", python_ver)
         # System call to remove old result file if exists:
         if os.path.isfile(RESULT_FILE): 
             logger.info("deleting RESULT_FILE=%s", RESULT_FILE)
@@ -208,6 +214,7 @@ def test_tcp_flow_expiration_unidir():
     Test output for unidirectional processing of tcp_syn_only.pcap file
     """
     for python_ver in (PYTHON2, PYTHON3):
+        logger.info("Testing Python version %s", python_ver)
         # System call to remove old result file if exists:
         if os.path.isfile(RESULT_FILE): 
             logger.info("deleting RESULT_FILE=%s", RESULT_FILE)
@@ -234,6 +241,7 @@ def test_tcp_flow_expiration_bidir():
     Test output for bidirectional processing of tcp_syn_only.pcap file
     """
     for python_ver in (PYTHON2, PYTHON3):
+        logger.info("Testing Python version %s", python_ver)
         # System call to remove old result file if exists:
         if os.path.isfile(RESULT_FILE): 
             logger.info("deleting RESULT_FILE=%s", RESULT_FILE)

@@ -58,6 +58,7 @@ flowRecorder depends on the following libraries:
 -  pcapy
 -  hashlib
 -  numpy
+-  coloredlogs
 
 These can be installed with (Python 2.x):
 
@@ -68,7 +69,7 @@ These can be installed with (Python 2.x):
 
    sudo apt install python-pip python-pytest python-yaml
 
-   pip install dpkt pcapy numpy
+   pip install dpkt pcapy numpy coloredlogs --user
 
 These can be installed with (Python 3.x):
 
@@ -79,7 +80,7 @@ These can be installed with (Python 3.x):
 
    sudo apt install python3-pip python-pytest3 python-yaml
 
-   pip3 install dpkt pcapy numpy
+   pip3 install dpkt pcapy numpy coloredlogs
 
 
 Testing
@@ -96,6 +97,9 @@ Run python 3.x self tests with:
 ::
 
     cd ~/flowRecorder/tests/; py.test-3
+
+Note: tests run Python 2.x and 3.x code so installs for both must be
+done for tests to pass.
 
 Known issues
 ============

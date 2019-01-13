@@ -51,14 +51,15 @@ class Flows(BaseClass):
     The Flows class represents cummulative information about flows
     (not individual packets)
     """
-    def __init__(self, config, mode):
+    def __init__(self, config, mode, cap_type):
         """
         Initialise the Flows Class
         Args:
-           config: Config class object
-           mode: the mode in which the packets should be organised
-             into flow records. 'u' is for unidirectional, 'b' is for
-             bidirectional.
+          config: Config class object
+          mode: the mode in which the packets should be organised
+            into flow records. 'u' is for unidirectional, 'b' is for
+            bidirectional.
+          cap_type: capture type string of 'std' or 'raw_ip'
         """
         # Required for BaseClass:
         self.config = config
@@ -67,6 +68,10 @@ class Flows(BaseClass):
                                        "flows_logging_level_c")
         # Mode is u for unidirectional or b for bidirectional:
         self.mode = mode
+        
+        # Capture type string of 'std' or 'raw_ip'
+        self.cap_type = cap_type
+        
         # Python dictionaries to hold current and archived flow records:
         self.flow_cache = OrderedDict()
         self.flow_archive = OrderedDict()
@@ -76,6 +81,9 @@ class Flows(BaseClass):
 
         # Counter for packets that we ignored for various reasons:
         self.packets_ignored = 0
+        
+        # Packet tally counter for debug, ref in packet cap etc:
+        self.packet_num = 0
 
     def ingest_pcap(self, dpkt_reader):
         """
@@ -86,8 +94,9 @@ class Flows(BaseClass):
         """
         # Process each packet in the pcap:
         for timestamp, packet in dpkt_reader:
+            self.packet_num += 1
             # Instantiate an instance of Packet class with packet info:
-            packet = Packet(self.logger, timestamp, packet, self.mode)
+            packet = Packet(self.logger, timestamp, packet, self.mode, self.cap_type, self.packet_num)
             if packet.ingested:
                 # Update the flow with packet info:
                 self.flow.update(packet)
@@ -102,8 +111,10 @@ class Flows(BaseClass):
         sec, ms = hdr.getts()
         timestamp = sec + ms / 1000000
 
+        self.packet_num += 1
+
         # Instantiate an instance of Packet class with packet info:
-        packet = Packet(self.logger, timestamp, packet, self.mode)
+        packet = Packet(self.logger, timestamp, packet, self.mode, self.cap_type, self.packet_num)
 
         if packet.ingested:
             # Update the flow with packet info:
@@ -526,9 +537,9 @@ class Flow(object):
 
 class Packet(object):
     """
-    An object that represents a packet
+    An object that represents an IP packet
     """
-    def __init__(self, logger, timestamp, packet, mode):
+    def __init__(self, logger, timestamp, packet, mode, cap_type, packet_num):
         """
         Parameters:
             timestamp: when packet was recorded
@@ -551,34 +562,63 @@ class Packet(object):
         self.tp_seq_dst = 0
         self.ingested = False
 
-        try:
-            # Read packet into dpkt to parse headers:
-            eth = dpkt.ethernet.Ethernet(packet)
-        except:
-            # Skip Packet if unable to parse:
-            self.logger.error("failed to unpack packet, skipping...")
-            return
-
-        # Get the IP packet
-        ip = eth.data
-
-        # Get the length of IPv4 packet:
-        if isinstance(eth.data, dpkt.ip.IP):
-            self.length = ip.len
-        # Get the length of IPv6 packet:
-        elif isinstance(eth.data, dpkt.ip6.IP6):
-            self.length = len(ip.data)
-        # Ignore if non-IP packet:
+        if cap_type == 'raw_ip':
+            # Try Raw IP format that has no Ethernet:
+            try:
+                # Read packet into dpkt to parse headers:
+                ip = dpkt.ip.IP(packet)
+                # TEMP:
+                self.logger.debug("raw_ip proto=%s", ip.p)
+            except dpkt.UnpackError:
+                try:
+                    # Read packet into dpkt to parse headers:
+                    ip = dpkt.ip6.IP6(packet)
+                    # TEMP:
+                    self.logger.debug("raw_ip proto=%s", ip.p)
+                except Exception as e:
+                    # Skip Packet if unable to parse:
+                    self.logger.error("Exception unpacking IPv6 packet_num=%s Raw IP: %s", packet_num, e)
+                    self.logger.exception("Exception:")
+                    self.logger.error("...skipping...")
+                    return
+            except Exception as e:
+                # Skip Packet if unable to parse:
+                self.logger.error("Exception unpacking packet_num=%s Raw IP: %s", packet_num, e)
+                self.logger.exception("Exception:")
+                self.logger.error("...skipping...")
+                return
+                #
         else:
-            return
+            try:
+                # Read packet into dpkt to parse headers:
+                eth = dpkt.ethernet.Ethernet(packet)
+            except Exception as e:
+                # Skip Packet if unable to parse:
+                if e != 'invalid header length':
+                    self.logger.error("Exception unpacking packet_num=%s: %s", packet_num, e)
+                    self.logger.exception("Exception:")
+                    self.logger.error("...skipping...")
+                    return
+                else:
+                    self.logger.error("invalid header length - try option c and specify raw_ip format?", e)
+                    self.logger.error("...skipping...")
+            # Make sure the Ethernet frame contains an IP packet
+            if not isinstance(eth.data, dpkt.ip.IP):
+                self.logger.debug("Non IP Packet type not supported %s", eth.data.__class__.__name__)
+                return
+            # Get the IP packet
+            ip = eth.data
 
         # Handle IPv4 and IPv6:
         try:
             self.ip_src = socket.inet_ntop(socket.AF_INET, ip.src)
             self.ip_dst = socket.inet_ntop(socket.AF_INET, ip.dst)
+            self.length = ip.len
         except ValueError:
             self.ip_src = socket.inet_ntop(socket.AF_INET6, ip.src)
             self.ip_dst = socket.inet_ntop(socket.AF_INET6, ip.dst)
+            self.length = len(ip.data)
+
         # Transport layer:
         self.proto = ip.p
         if ip.p == 6:
@@ -590,6 +630,8 @@ class Packet(object):
             self.tp_seq_src = tcp.seq
             self.tp_seq_dst = tcp.ack
         elif ip.p == 17:
+            # TEMP:
+            self.logger.debug("packet_num=%s", packet_num)
             # UDP
             udp = ip.data
             self.tp_src = udp.sport

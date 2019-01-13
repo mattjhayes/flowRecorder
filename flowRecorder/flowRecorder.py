@@ -46,6 +46,8 @@ from baseclass import BaseClass
 
 VERSION = "0.2.0"
 
+CAP_TYPE_DEFAULT = 'std'
+
 # Configure Logging:
 logger = logging.getLogger(__name__)
 coloredlogs.install(level='DEBUG', logger=logger,
@@ -78,9 +80,11 @@ class FlowRecorder(BaseClass):
         self.output_filename = ""
         # Direction parameter recorded in mode:
         self.mode = ""
+        self.cap_type = CAP_TYPE_DEFAULT
         try:
-            opts, args = getopt.getopt(CLI_arguments, "d:f:hi:o:v",
-                                    ["direction=",
+            opts, args = getopt.getopt(CLI_arguments, "c:d:f:hi:o:v",
+                                    ["cap_type=",
+                                    "direction=",
                                     "file=",
                                     "help",
                                     "interface=",
@@ -91,7 +95,9 @@ class FlowRecorder(BaseClass):
             print_help()
             sys.exit(2)
         for opt, arg in opts:
-            if opt in ("-d", "--direction"):
+            if opt in ("-c", "--cap_type"):
+                self.cap_type = arg
+            elif opt in ("-d", "--direction"):
                 self.mode = arg
             elif opt in ("-f", "--file"):
                 self.input_filename = arg
@@ -133,7 +139,7 @@ class FlowRecorder(BaseClass):
             sys.exit()
 
         # Instantiate Flows Class:
-        self.flows = flows.Flows(self.config, self.mode)
+        self.flows = flows.Flows(self.config, self.mode, self.cap_type)
 
     def run(self):
         """
@@ -223,6 +229,8 @@ records in bidirection, the following command can be used:
   sudo python3 flowRecorder.py -d b -i en0 -o results.csv
 
 Options:
+ -c  --cap_type      Specify capture type. Default is std, alternative
+                     is raw_ip
  -d  --direction     Unidirectional (u) or Bidirectional (b) flows
                      (default is b)
  -f  --file          Input PCAP filename

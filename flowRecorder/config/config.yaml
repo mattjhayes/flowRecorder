@@ -33,7 +33,8 @@ coloredlogs_enabled: 1
 #
 # Console Log Format:
 #console_format: "%(asctime)s %(module)s[%(process)d] %(funcName)s %(levelname)s %(message)s"
-console_format: "%(asctime)s.%(msecs)03d %(name)s[%(process)d] %(funcName)s %(levelname)s %(message)s"
+#console_format: "%(asctime)s.%(msecs)03d %(name)s[%(process)d] %(funcName)s %(levelname)s %(message)s"
+console_format: "%(asctime)s.%(msecs)03d sev=%(levelname)s module=%(module)s func=%(funcName)s %(message)s"
 #
 # Console Logging Levels Per Module
 # Values can be one of CRITICAL|ERROR|WARNING|INFO|DEBUG:

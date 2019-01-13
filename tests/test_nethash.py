@@ -44,6 +44,8 @@ TIMESTAMP = '1538857982.301350'
 # Test packet capture files:
 TEST_PCAP_HTTP1 = '../tests/packet_captures/http1.pcap'
 
+CAP_TYPE = 'std'
+
 #======================== nethash.py Unit Tests ============================
 def test_hash_b6():
     """
@@ -74,7 +76,7 @@ def test_hash_b5():
         pcap_file_handle = dpkt.pcap.Reader(pcap_file)
         for timestamp, pcap_packet in pcap_file_handle:
             #*** Instantiate an instance of Packet class:
-            packet = flows_module.Packet(logger, timestamp, pcap_packet, mode)
+            packet = flows_module.Packet(logger, timestamp, pcap_packet, mode, CAP_TYPE)
             if packet_number == 1:
                 flow_hash_packet_1 = packet.flow_hash
             else:
@@ -140,7 +142,7 @@ def test_hash_u5():
         pcap_file_handle = dpkt.pcap.Reader(pcap_file)
         for timestamp, pcap_packet in pcap_file_handle:
             #*** Instantiate an instance of Packet class:
-            packet = flows_module.Packet(logger, timestamp, pcap_packet, mode)
+            packet = flows_module.Packet(logger, timestamp, pcap_packet, mode, CAP_TYPE)
             if packet_number == 1:
                 flow_hash_packet_forward = packet.flow_hash
             elif packet_number == 2:
