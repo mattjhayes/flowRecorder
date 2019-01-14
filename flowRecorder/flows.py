@@ -77,6 +77,9 @@ class Flows(BaseClass):
         # Counter for packets that we ignored for various reasons:
         self.packets_ignored = 0
 
+        # Counter for all the processed packets:
+        self.packets_processed = 0
+
     def ingest_pcap(self, dpkt_reader):
         """
         ingest packet data from dpkt reader of pcap file
@@ -84,6 +87,9 @@ class Flows(BaseClass):
         Args:
            dpkt_reader: dpkt pcap reader object (dpkt.pcap.Reader)
         """
+
+        infoFrequency = self.config.get_value("infoFrequency")
+
         # Process each packet in the pcap:
         for timestamp, packet in dpkt_reader:
             # Instantiate an instance of Packet class with packet info:
@@ -91,6 +97,9 @@ class Flows(BaseClass):
             if packet.ingested:
                 # Update the flow with packet info:
                 self.flow.update(packet)
+                self.packets_processed += 1
+                if self.packets_processed % infoFrequency == 0:
+                    self.logger.info("Already processed %d packets", self.packets_processed)
             else:
                 self.packets_ignored += 1
 
@@ -105,9 +114,14 @@ class Flows(BaseClass):
         # Instantiate an instance of Packet class with packet info:
         packet = Packet(self.logger, timestamp, packet, self.mode)
 
+        infoFrequency = self.config.get_value("infoFrequency")
+
         if packet.ingested:
             # Update the flow with packet info:
             self.flow.update(packet)
+            self.packets_processed += 1
+            if self.packets_processed % infoFrequency == 0:
+                self.logger.info("Already processed %d packets", self.packets_processed)
         else:
             self.packets_ignored += 1
 
@@ -126,9 +140,7 @@ class Flows(BaseClass):
             else:
                 # Bidirectional fields:
                 fieldnames = ['src_ip', 'src_port', 'dst_ip', 'dst_port',
-                            'proto',
-                            'length',
-                            'pktTotalCount', 'octetTotalCount',
+                            'proto', 'pktTotalCount', 'octetTotalCount',
                             'min_ps', 'max_ps', 'avg_ps', 'std_dev_ps',
                             'flowStart', 'flowEnd', 'flowDuration',
                             'min_piat', 'max_piat', 'avg_piat', 'std_dev_piat',
@@ -162,6 +174,7 @@ class Flows(BaseClass):
         self.logger.info("Flow Records: %s", len(self.flow_cache))
         self.logger.info("Additional Archived Flow Records: %s", len(self.flow_archive))
         self.logger.info("Ignored Packets: %s", self.packets_ignored)
+        self.logger.info("Processed Packets: %s", self.packets_processed)
 
 class Flow(object):
     """
